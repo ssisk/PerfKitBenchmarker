@@ -38,9 +38,9 @@ flags.DEFINE_enum('memcached_managed', providers.GCP,
 
 flags.DEFINE_enum('memcached_scenario', 'custom',
                   ['custom', 'managed'],
-                   'select one scenario to run: \n'
-                   'custom: Provision VMs and install memcached ourselves. \n'
-                   'managed: Use the specified provider\'s managed memcache.')
+                  'select one scenario to run: \n'
+                  'custom: Provision VMs and install memcached ourselves. \n'
+                  'managed: Use the specified provider\'s managed memcache.')
 
 flags.DEFINE_enum('memcached_elasticache_region', 'us-west-1',
                   ['ap-northeast-1', 'ap-northeast-2', 'ap-southeast-1',
@@ -167,7 +167,6 @@ def Run(benchmark_spec):
                FLAGS.memcached_scenario)
 
   clients = benchmark_spec.vm_groups['clients']
-  servers = benchmark_spec.vm_groups['servers']
 
   samples = list(benchmark_spec.executor.LoadAndRun(clients))
 
