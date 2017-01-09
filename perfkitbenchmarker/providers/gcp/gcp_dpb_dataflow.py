@@ -17,6 +17,8 @@ No Clusters can be created or destroyed, since it is a managed solution
 See details at: https://cloud.google.com/dataflow/
 """
 
+import os
+
 from perfkitbenchmarker import flags
 from perfkitbenchmarker import providers
 from perfkitbenchmarker import dpb_service
@@ -34,7 +36,7 @@ FLAGS = flags.FLAGS
 
 GCP_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 
-DATAFLOW_BLOCKING_RUNNER = 'BlockingDataflowPipelineRunner'
+DATAFLOW_RUNNER = 'DataflowRunner'
 
 DATAFLOW_WC_INPUT = 'gs://dataflow-samples/shakespeare/kinglear.txt'
 
@@ -83,26 +85,34 @@ class GcpDpbDataflow(dpb_service.BaseDpbService):
     cmd = []
 
     # Needed to verify java executable is on the path
-    dataflow_executable = 'java'
+    dataflow_executable = 'mvn'
     if not vm_util.ExecutableOnPath(dataflow_executable):
       raise errors.Setup.MissingExecutableError(
           'Could not find required executable "%s"' % dataflow_executable)
     cmd.append(dataflow_executable)
 
-    cmd.append('-cp')
-    cmd.append(jarfile)
+    cmd.append('exec:java')
+    # cmd.append(jarfile)
 
-    cmd.append(classname)
-    cmd += job_arguments
+    cmd.append('-Dexec.mainClass=%s' % classname)
+    # cmd += job_arguments
+    beam_args = job_arguments if job_arguments else []
 
-    cmd.append('--workerMachineType={}'.format(worker_machine_type))
-    cmd.append('--numWorkers={}'.format(num_workers))
-    cmd.append('--maxNumWorkers={}'.format(max_num_workers))
+    beam_args.append('--workerMachineType={}'.format(worker_machine_type))
+    beam_args.append('--numWorkers={}'.format(num_workers))
+    beam_args.append('--maxNumWorkers={}'.format(max_num_workers))
 
     if disk_size_gb:
-      cmd.append('--diskSizeGb={}'.format(disk_size_gb))
-    cmd.append('--defaultWorkerLogLevel={}'.format(FLAGS.dpb_log_level))
-    stdout, _, _ = vm_util.IssueCommand(cmd)
+      beam_args.append('--diskSizeGb={}'.format(disk_size_gb))
+    beam_args.append('--defaultWorkerLogLevel={}'.format(FLAGS.dpb_log_level))
+    cmd.append('-Dexec.args="{}"'.format(' '.join(beam_args)))
+    cmd.append('-Pdataflow-runner')
+    full_cmd = ' '.join(cmd)
+    stdout, _, _ = vm_util.IssueCommand([full_cmd],
+                                        cwd=os.path.join(
+                                          vm_util.GetTempDir(),
+                                          'word-count-beam'),
+                                        use_shell=True)
 
   def SetClusterProperty(self):
     pass

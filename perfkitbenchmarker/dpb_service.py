@@ -21,9 +21,11 @@ the corresponding provider directory as a subclass of BaseDpbService.
 """
 
 import abc
+import os
 
 from perfkitbenchmarker import flags
 from perfkitbenchmarker import resource
+from perfkitbenchmarker import vm_util
 
 
 flags.DEFINE_string('static_dpb_service_instance', None,
@@ -101,6 +103,18 @@ class BaseDpbService(resource.BaseResource):
   HADOOP_JOB_TYPE = 'hadoop'
   DATAFLOW_JOB_TYPE = 'dataflow'
 
+  archetype_cmd = """mvn archetype:generate \
+      -DarchetypeRepository=https://repository.apache.org/content/groups/snapshots \
+      -DarchetypeGroupId=org.apache.beam \
+      -DarchetypeArtifactId=beam-sdks-java-maven-archetypes-examples \
+      -DarchetypeVersion=LATEST \
+      -DgroupId=org.example \
+      -DartifactId=word-count-beam \
+      -Dversion="0.1" \
+      -Dpackage=org.apache.beam.examples \
+      -DinteractiveMode=false
+  """
+
   def __init__(self, dpb_service_spec):
     """Initialize the Dpb service object.
 
@@ -113,6 +127,27 @@ class BaseDpbService(resource.BaseResource):
     super(BaseDpbService, self).__init__(user_managed=is_user_managed)
     self.spec = dpb_service_spec
     self.cluster_id = dpb_service_spec.static_dpb_service_instance
+    # TODO(jasonkuster): Get which kind of backend we're targeting and use that
+    # as a parameter to InitializeBeamJars to build a more targeted jar.
+    self._InitializeBeamJars()
+
+  def _InitializeBeamJars(self):
+    vm_util.GenTempDir()
+    if self.SERVICE_TYPE is DATAFLOW:
+      vm_util.IssueCommand([self.archetype_cmd],
+                           cwd=vm_util.GetTempDir(),
+                           use_shell=True)
+      vm_util.IssueCommand(['mvn compile -Pdataflow-runner'],
+                           cwd=os.path.join(vm_util.GetTempDir(),
+                                            'word-count-beam'),
+                           use_shell=True)
+    elif self.SERVICE_TYPE is DATAPROC:
+      vm_util.IssueCommand(['git clone https://github.com/apache/beam.git'],
+                           cwd=vm_util.GetTempDir(),
+                           use_shell=True)
+      vm_util.IssueCommand(['mvn clean package -Pspark-runner -DskipTests'],
+                           cwd=os.path.join(vm_util.GetTempDir(), 'beam'),
+                           use_shell=True)
 
   @abc.abstractmethod
   def SubmitJob(self, job_jar, class_name, job_poll_interval=None,

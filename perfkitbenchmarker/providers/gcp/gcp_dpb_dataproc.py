@@ -34,6 +34,8 @@ GCP_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 SPARK_SAMPLE_LOCATION = ('file:///usr/lib/spark/examples/jars/'
                          'spark-examples.jar')
 
+SPARK_RUNNER = 'SparkRunner'
+
 
 class GcpDpbDataproc(dpb_service.BaseDpbService):
   """Object representing a GCP Dataproc cluster.
@@ -85,6 +87,7 @@ class GcpDpbDataproc(dpb_service.BaseDpbService):
 
     # The number of worker machines in the cluster
     cmd.flags['num-workers'] = self.spec.worker_count
+    cmd.flags['image-version'] = '1.0'
 
     # Initialize applications on the dataproc cluster
     if self.spec.applications:
