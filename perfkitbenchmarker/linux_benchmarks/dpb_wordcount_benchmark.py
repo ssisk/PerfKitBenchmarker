@@ -114,12 +114,6 @@ def Prepare(benchmark_spec):
 
 def Run(benchmark_spec):
 
-  # Configuring input location for the word count job
-  if FLAGS.dpb_wordcount_input is None:
-    input_location = gcp_dpb_dataflow.DATAFLOW_WC_INPUT
-  else:
-    input_location = FLAGS.dpb_wordcount_input
-
   # Get handle to the dpb service
   dpb_service_instance = benchmark_spec.dpb_service
 
@@ -132,11 +126,17 @@ def Run(benchmark_spec):
 
   # Switch the parameters for submit job function of specific dpb service
   job_arguments = []
-  job_arguments.append('--inputFile={}'.format(input_location))
   jarfile, classname, job_type = _GetJobArguments(
       dpb_service_instance.SERVICE_TYPE)
 
   if dpb_service_instance.SERVICE_TYPE == dpb_service.DATAFLOW:
+    # Configuring input location for the word count job
+    if FLAGS.dpb_wordcount_input is None:
+      input_location = gcp_dpb_dataflow.DATAFLOW_WC_INPUT
+    else:
+      input_location = '{}://{}'.format(FLAGS.dpb_wordcount_fs,
+ -                                      FLAGS.dpb_wordcount_input)
+
     jarfile = FLAGS.dpb_dataflow_jar
     job_arguments.append('--gcpTempLocation={}'.format(
         FLAGS.dpb_dataflow_staging_location))
@@ -148,11 +148,14 @@ def Run(benchmark_spec):
       base_out = 'gs://{}'.format(FLAGS.dpb_wordcount_out_base)
     job_arguments.append('--output={}/output/'.format(base_out))
   else:
+    input_location = FLAGS.dpb_wordcount_input
     jarfile = os.path.join(vm_util.GetTempDir(),
                              'beam/examples/java/target/beam-examples-java-bundled-0.5.0-SNAPSHOT.jar')
     job_arguments.append('--runner={}'.format(
         gcp_dpb_dataproc.SPARK_RUNNER))
     job_arguments.append('--output=output/output')
+
+  job_arguments.append('--inputFile={}'.format(input_location))
 
   # TODO (saksena): Finalize more stats to gather
   results = []

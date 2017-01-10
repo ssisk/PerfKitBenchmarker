@@ -105,6 +105,7 @@ class GcpDpbDataflow(dpb_service.BaseDpbService):
     if disk_size_gb:
       beam_args.append('--diskSizeGb={}'.format(disk_size_gb))
     beam_args.append('--defaultWorkerLogLevel={}'.format(FLAGS.dpb_log_level))
+    beam_args.append('--project={}'.format(FLAGS.project))
     cmd.append('-Dexec.args="{}"'.format(' '.join(beam_args)))
     cmd.append('-Pdataflow-runner')
     full_cmd = ' '.join(cmd)
