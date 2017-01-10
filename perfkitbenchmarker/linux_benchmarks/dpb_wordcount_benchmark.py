@@ -88,6 +88,8 @@ flags.DEFINE_enum('dpb_wordcount_fs', BaseDpbService.GCS_FS,
 flags.DEFINE_string('dpb_wordcount_out_base', None,
                     'Base directory for word count output')
 
+flags.DEFINE_boolean('ci_run', False, 'Set if running in Beam Jenkins.')
+
 FLAGS = flags.FLAGS
 
 
