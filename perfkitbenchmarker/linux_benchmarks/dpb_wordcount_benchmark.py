@@ -135,7 +135,7 @@ def Run(benchmark_spec):
       input_location = gcp_dpb_dataflow.DATAFLOW_WC_INPUT
     else:
       input_location = '{}://{}'.format(FLAGS.dpb_wordcount_fs,
- -                                      FLAGS.dpb_wordcount_input)
+                                        FLAGS.dpb_wordcount_input)
 
     jarfile = FLAGS.dpb_dataflow_jar
     job_arguments.append('--gcpTempLocation={}'.format(
