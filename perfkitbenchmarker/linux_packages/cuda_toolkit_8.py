@@ -129,6 +129,7 @@ def _CheckNvidiaSmiExists(vm):
 def AptInstall(vm):
   """Installs CUDA toolkit 8 on the VM if not already installed"""
   if _CheckNvidiaSmiExists(vm):
+    SetAndConfirmGpuClocks(vm) # Max out clocks if CUDA is already installed
     return
 
   vm.Install('build_tools')
@@ -139,7 +140,7 @@ def AptInstall(vm):
   vm.RemoteCommand('sudo apt-get install -y cuda')
   vm.RemoteCommand('sudo reboot', ignore_failure=True)
   vm.WaitForBootCompletion()
-  SetAndConfirmGpuClocks()
+  SetAndConfirmGpuClocks(vm)
 
 
 def YumInstall(vm):
