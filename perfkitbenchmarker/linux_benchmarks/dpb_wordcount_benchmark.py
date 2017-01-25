@@ -50,7 +50,7 @@ BENCHMARK_CONFIG = """
 dpb_wordcount_benchmark:
   description: Run word count on dataflow and dataproc
   dpb_service:
-    service_type: dataproc
+    service_type: dataflow
     worker_group:
       vm_spec:
         GCP:
@@ -73,7 +73,7 @@ WORD_COUNT_CONFIGURATION = dict(
                                 'org.apache.beam.examples.WordCount',
                                 BaseDpbService.SPARK_JOB_TYPE)),
         (dpb_service.DATAFLOW, (None,
-                                'org.apache.beam.examples.WordCount',
+                                'org.apache.beam.examples.WordCountIT',
                                 BaseDpbService.DATAFLOW_JOB_TYPE)),
         (dpb_service.EMR, (aws_dpb_emr.SPARK_SAMPLE_LOCATION,
                            'org.apache.spark.examples.JavaWordCount',
@@ -132,21 +132,23 @@ def Run(benchmark_spec):
 
   # Switch the parameters for submit job function of specific dpb service
   job_arguments = []
-  job_arguments.append('--inputFile={}'.format(input_location))
+  # job_arguments.append('"--inputFile={}"'.format(input_location))
   jarfile, classname, job_type = _GetJobArguments(
       dpb_service_instance.SERVICE_TYPE)
 
   if dpb_service_instance.SERVICE_TYPE == dpb_service.DATAFLOW:
     jarfile = FLAGS.dpb_dataflow_jar
-    job_arguments.append('--gcpTempLocation={}'.format(
+    job_arguments.append('"--gcpTempLocation={}"'.format(
         FLAGS.dpb_dataflow_staging_location))
-    job_arguments.append('--runner={}'.format(
-        gcp_dpb_dataflow.DATAFLOW_RUNNER))
+    job_arguments.append('"--tempRoot={}"'.format(
+        FLAGS.dpb_dataflow_staging_location))
+    #job_arguments.append('--runner={}'.format(
+    #    gcp_dpb_dataflow.DATAFLOW_RUNNER))
     if not FLAGS.dpb_wordcount_out_base:
       base_out = FLAGS.dpb_dataflow_staging_location
     else:
       base_out = 'gs://{}'.format(FLAGS.dpb_wordcount_out_base)
-    job_arguments.append('--output={}/output/'.format(base_out))
+    # job_arguments.append('"--output={}/output/"'.format(base_out))
   else:
     jarfile = os.path.join(vm_util.GetTempDir(),
                              'beam/examples/java/target/beam-examples-java-bundled-0.5.0-SNAPSHOT.jar')

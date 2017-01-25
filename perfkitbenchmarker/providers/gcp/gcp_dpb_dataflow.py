@@ -91,27 +91,29 @@ class GcpDpbDataflow(dpb_service.BaseDpbService):
           'Could not find required executable "%s"' % dataflow_executable)
     cmd.append(dataflow_executable)
 
-    cmd.append('exec:java')
+    cmd.append('failsafe:integration-test')
     # cmd.append(jarfile)
 
-    cmd.append('-Dexec.mainClass=%s' % classname)
-    # cmd += job_arguments
+    cmd.append('-Dit.test=%s' % classname)
+    cmd.append('-DskipITs=false')
+    cmd.append('-DfailIfNoTests=false')
+    cmd.append('-Pdataflow-runner')
     beam_args = job_arguments if job_arguments else []
 
-    beam_args.append('--workerMachineType={}'.format(worker_machine_type))
-    beam_args.append('--numWorkers={}'.format(num_workers))
-    beam_args.append('--maxNumWorkers={}'.format(max_num_workers))
+    #beam_args.append('"--workerMachineType={}"'.format(worker_machine_type))
+    #beam_args.append('"--numWorkers={}"'.format(num_workers))
+    #beam_args.append('"--maxNumWorkers={}"'.format(max_num_workers))
 
-    if disk_size_gb:
-      beam_args.append('--diskSizeGb={}'.format(disk_size_gb))
-    beam_args.append('--defaultWorkerLogLevel={}'.format(FLAGS.dpb_log_level))
-    cmd.append('-Dexec.args="{}"'.format(' '.join(beam_args)))
-    cmd.append('-Pdataflow-runner')
+    #if disk_size_gb:
+      #beam_args.append('"--diskSizeGb={}"'.format(disk_size_gb))
+    #beam_args.append('"--defaultWorkerLogLevel={}"'.format(FLAGS.dpb_log_level))
+    beam_args.append('"--runner=org.apache.beam.runners.dataflow.testing.TestDataflowRunner"')
+    cmd.append("-DbeamTestPipelineOptions='[{}]'".format(', '.join(beam_args)))
     full_cmd = ' '.join(cmd)
     stdout, _, _ = vm_util.IssueCommand([full_cmd],
                                         cwd=os.path.join(
                                           vm_util.GetTempDir(),
-                                          'word-count-beam'),
+                                          'beam'),
                                         use_shell=True)
 
   def SetClusterProperty(self):

@@ -127,24 +127,18 @@ class BaseDpbService(resource.BaseResource):
     super(BaseDpbService, self).__init__(user_managed=is_user_managed)
     self.spec = dpb_service_spec
     self.cluster_id = dpb_service_spec.static_dpb_service_instance
-    # TODO(jasonkuster): Get which kind of backend we're targeting and use that
-    # as a parameter to InitializeBeamJars to build a more targeted jar.
     self._InitializeBeamJars()
 
   def _InitializeBeamJars(self):
     vm_util.GenTempDir()
+    vm_util.IssueCommand(['git clone https://github.com/apache/beam.git'],
+                         cwd=vm_util.GetTempDir(),
+                         use_shell=True)
     if self.SERVICE_TYPE is DATAFLOW:
-      vm_util.IssueCommand([self.archetype_cmd],
-                           cwd=vm_util.GetTempDir(),
-                           use_shell=True)
-      vm_util.IssueCommand(['mvn compile -Pdataflow-runner'],
-                           cwd=os.path.join(vm_util.GetTempDir(),
-                                            'word-count-beam'),
+      vm_util.IssueCommand(['mvn clean compile test-compile -Pdataflow-runner'],
+                           cwd=os.path.join(vm_util.GetTempDir(), 'beam'),
                            use_shell=True)
     elif self.SERVICE_TYPE is DATAPROC:
-      vm_util.IssueCommand(['git clone https://github.com/apache/beam.git'],
-                           cwd=vm_util.GetTempDir(),
-                           use_shell=True)
       vm_util.IssueCommand(['mvn clean package -Pspark-runner -DskipTests'],
                            cwd=os.path.join(vm_util.GetTempDir(), 'beam'),
                            use_shell=True)
