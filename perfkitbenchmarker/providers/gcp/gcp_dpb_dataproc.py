@@ -144,7 +144,7 @@ class GcpDpbDataproc(dpb_service.BaseDpbService):
     cmd.flags['driver-log-levels'] = 'root={}'.format(FLAGS.dpb_log_level)
 
     if job_arguments:
-      cmd.additional_flags = ['--'] + job_arguments
+      cmd.additional_flags = [] + job_arguments
 
     stdout, stderr, retcode = cmd.Issue(timeout=None)
     if retcode != 0:

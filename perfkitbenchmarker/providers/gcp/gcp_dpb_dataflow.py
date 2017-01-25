@@ -103,7 +103,6 @@ class GcpDpbDataflow(dpb_service.BaseDpbService):
     #beam_args.append('"--workerMachineType={}"'.format(worker_machine_type))
     #beam_args.append('"--numWorkers={}"'.format(num_workers))
     #beam_args.append('"--maxNumWorkers={}"'.format(max_num_workers))
-
     #if disk_size_gb:
       #beam_args.append('"--diskSizeGb={}"'.format(disk_size_gb))
     #beam_args.append('"--defaultWorkerLogLevel={}"'.format(FLAGS.dpb_log_level))

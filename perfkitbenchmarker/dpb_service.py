@@ -103,7 +103,9 @@ class BaseDpbService(resource.BaseResource):
   HADOOP_JOB_TYPE = 'hadoop'
   DATAFLOW_JOB_TYPE = 'dataflow'
 
-  archetype_cmd = """mvn archetype:generate \
+  beam_jenkins_prefix = "~/tools/maven/latest/bin/"
+  maven_command = "mvn"
+  archetype_cmd = """{} archetype:generate \
       -DarchetypeRepository=https://repository.apache.org/content/groups/snapshots \
       -DarchetypeGroupId=org.apache.beam \
       -DarchetypeArtifactId=beam-sdks-java-maven-archetypes-examples \
@@ -131,17 +133,22 @@ class BaseDpbService(resource.BaseResource):
 
   def _InitializeBeamJars(self):
     vm_util.GenTempDir()
+    cmd = self.maven_command
+    if FLAGS.ci_run:
+        cmd = "{0}{1}".format(self.beam_jenkins_prefix, self.maven_command)
     vm_util.IssueCommand(['git clone https://github.com/apache/beam.git'],
                          cwd=vm_util.GetTempDir(),
                          use_shell=True)
     if self.SERVICE_TYPE is DATAFLOW:
-      vm_util.IssueCommand(['mvn clean compile test-compile -Pdataflow-runner'],
-                           cwd=os.path.join(vm_util.GetTempDir(), 'beam'),
-                           use_shell=True)
+      vm_util.IssueCommand([
+          '{} clean compile test-compile -Pdataflow-runner'.format(cmd)],
+          cwd=os.path.join(vm_util.GetTempDir(), 'beam'),
+          use_shell=True)
     elif self.SERVICE_TYPE is DATAPROC:
-      vm_util.IssueCommand(['mvn clean package -Pspark-runner -DskipTests'],
-                           cwd=os.path.join(vm_util.GetTempDir(), 'beam'),
-                           use_shell=True)
+      vm_util.IssueCommand([
+          '{} clean package -Pspark-runner -DskipTests'.format(cmd)],
+          cwd=os.path.join(vm_util.GetTempDir(), 'beam'),
+          use_shell=True)
 
   @abc.abstractmethod
   def SubmitJob(self, job_jar, class_name, job_poll_interval=None,
