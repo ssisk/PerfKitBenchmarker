@@ -32,6 +32,7 @@ flags.DEFINE_string('static_dpb_service_instance', None,
                     'If set, the name of the pre created dpb implementation,'
                     'assumed to be ready.')
 flags.DEFINE_string('dpb_log_level', 'FATAL', 'Manipulate service log level')
+flags.DEFINE_boolean('ci_run', False, 'Set if running in Beam Jenkins.')
 
 _DPB_SERVICE_REGISTRY = {}
 FLAGS = flags.FLAGS
@@ -141,7 +142,7 @@ class BaseDpbService(resource.BaseResource):
                          use_shell=True)
     if self.SERVICE_TYPE is DATAFLOW:
       vm_util.IssueCommand([
-          '{} clean compile test-compile -Pdataflow-runner'.format(cmd)],
+          '{} clean install -DskipTests -Dcheckstyle.skip=true -Pdataflow-runner'.format(cmd)],
           cwd=os.path.join(vm_util.GetTempDir(), 'beam'),
           use_shell=True)
     elif self.SERVICE_TYPE is DATAPROC:
