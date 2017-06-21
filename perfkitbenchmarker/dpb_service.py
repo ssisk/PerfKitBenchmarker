@@ -39,6 +39,7 @@ FLAGS = flags.FLAGS
 DATAPROC = 'dataproc'
 DATAFLOW = 'dataflow'
 EMR = 'emr'
+LOCAL = 'local'
 
 # Default number of workers to be used in the dpb service implementation
 DEFAULT_WORKER_COUNT = 2

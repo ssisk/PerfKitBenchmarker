@@ -78,8 +78,9 @@ def CheckPrerequisites(benchmark_spec):
     raise errors.Config.InvalidValue(
         'No args provided. To run with default class (WordCountIT), must'
         'provide --beam_it_args=--tempRoot=<temp dir, e.g. gs://my-dir/temp>.')
-  if benchmark_spec.dpb_service.service_type != dpb_service.DATAFLOW:
-    raise NotImplementedError('Currently only works against Dataflow.')
+  if (benchmark_spec.dpb_service.service_type != dpb_service.DATAFLOW and
+      benchmark_spec.dpb_service.service_type != dpb_service.LOCAL):
+    raise NotImplementedError('Currently only supports Dataflow or local.')
 
 
 def Prepare(benchmark_spec):

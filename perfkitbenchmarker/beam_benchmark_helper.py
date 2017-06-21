@@ -45,6 +45,7 @@ FLAGS = flags.FLAGS
 
 SUPPORTED_RUNNERS = [
     dpb_service.DATAFLOW,
+    dpb_service.LOCAL
 ]
 
 BEAM_REPO_LOCATION = 'https://github.com/apache/beam.git'
@@ -91,11 +92,11 @@ def InitializeBeamRepo(benchmark_spec):
     vm_util.IssueCommand(mvn_command, cwd=beam_dir)
 
 
-def BuildMavenCommand(benchmark_spec, classname, job_arguments):
+def BuildMavenCommand(dpb_service_spec, classname, job_arguments):
   """ Constructs a maven command for the benchmark.
 
   Args:
-    benchmark_spec: The PKB spec for the benchmark to run.
+    dpb_service_spec: The PKB spec for the benchmark to run.
     classname: The classname of the class to run.
     job_arguments: The additional job arguments provided for the run.
 
@@ -103,7 +104,7 @@ def BuildMavenCommand(benchmark_spec, classname, job_arguments):
     cmd: Array containing the built command.
     beam_dir: The directory in which to run the command.
   """
-  if benchmark_spec.service_type not in SUPPORTED_RUNNERS:
+  if dpb_service_spec.service_type not in SUPPORTED_RUNNERS:
     raise NotImplementedError('Unsupported Runner')
 
   cmd = []
@@ -128,11 +129,13 @@ def BuildMavenCommand(benchmark_spec, classname, job_arguments):
 
   beam_args = job_arguments if job_arguments else []
 
-  if benchmark_spec.service_type == dpb_service.DATAFLOW:
+  if dpb_service_spec.service_type == dpb_service.DATAFLOW:
     cmd.append('-P{}'.format('dataflow-runner'))
-    beam_args.append('"--runner=org.apache.beam.runners.'
-                     'dataflow.testing.TestDataflowRunner"')
+    beam_args.append('"--runner=TestDataflowRunner"')
     beam_args.append('"--defaultWorkerLogLevel={}"'.format(FLAGS.dpb_log_level))
+  elif dpb_service_spec.service_type == dpb_service.LOCAL:
+    beam_args.append('"--runner=DirectRunner"')
+
 
   cmd.append("-DintegrationTestPipelineOptions="
              "[{}]".format(','.join(beam_args)))
