@@ -42,6 +42,7 @@ from perfkitbenchmarker.dpb_service import BaseDpbService
 from perfkitbenchmarker.providers.aws import aws_dpb_emr
 from perfkitbenchmarker.providers.gcp import gcp_dpb_dataproc
 from perfkitbenchmarker.providers.gcp import gcp_dpb_dataflow
+from perfkitbenchmarker.providers.gcp import gcp_dpb_direct
 
 BENCHMARK_NAME = 'dpb_wordcount_benchmark'
 
@@ -76,7 +77,10 @@ WORD_COUNT_CONFIGURATION = dict(
                                 BaseDpbService.DATAFLOW_JOB_TYPE)),
         (dpb_service.EMR, (aws_dpb_emr.SPARK_SAMPLE_LOCATION,
                            'org.apache.spark.examples.JavaWordCount',
-                           BaseDpbService.SPARK_JOB_TYPE))
+                           BaseDpbService.SPARK_JOB_TYPE)),
+      (dpb_service.DIRECT, (None,
+                         'com.google.cloud.dataflow.examples.WordCount',
+                         BaseDpbService.DATAFLOW_JOB_TYPE))
     ]
 )
 

@@ -18,6 +18,7 @@ import logging
 from perfkitbenchmarker import disk
 from perfkitbenchmarker import errors
 from perfkitbenchmarker import flags
+from perfkitbenchmarker import kubernetes_helper
 from perfkitbenchmarker import virtual_machine, linux_virtual_machine
 from perfkitbenchmarker import vm_util
 from perfkitbenchmarker import providers
@@ -36,9 +37,7 @@ def CreateResource(resource_body):
   with vm_util.NamedTemporaryFile() as tf:
     tf.write(resource_body)
     tf.close()
-    create_cmd = [FLAGS.kubectl, '--kubeconfig=%s' % FLAGS.kubeconfig,
-                  'create', '-f', tf.name]
-    return vm_util.IssueCommand(create_cmd)
+    return kubernetes_helper.CreateFromFile(tf.name)
 
 
 class KubernetesVirtualMachine(virtual_machine.BaseVirtualMachine):

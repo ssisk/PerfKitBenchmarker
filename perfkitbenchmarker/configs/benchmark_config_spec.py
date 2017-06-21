@@ -96,6 +96,7 @@ class _DpbApplicationListDecoder(option_decoders.ListDecoder):
 
 
 
+
 class _DpbServiceDecoder(option_decoders.TypeVerifier):
   """Validates the dpb(data processing backend) service dictionary of a
   benchmark config object."""
@@ -177,6 +178,7 @@ class _DpbServiceSpec(spec.BaseSpec):
             'min': 2
         }),
         'applications': (_DpbApplicationListDecoder, {}),
+        'kubernetes_scripts': (_DpbKubernetesScriptListDecoder, {}),
         'static_pipeline_options': (_DpbPipelineOptionsListDecoder, {}),
         'dynamic_pipeline_options': (_DpbPipelineOptionsListDecoder, {})
     })
@@ -682,6 +684,23 @@ class _SparkServiceDecoder(option_decoders.TypeVerifier):
         **spark_service_config)
     return result
 
+class _DpbKubernetesScriptListDecoder(option_decoders.ListDecoder):
+  """Decodes the list of applications to be enabled on the dpb service."""
+
+  def __init__(self, **kwargs):
+    super(_DpbKubernetesScriptListDecoder, self).__init__(
+      default=None,
+      item_decoder=option_decoders.StringDecoder(default=None),
+      **kwargs)
+
+class _DpbPipelineOptionsListDecoder(option_decoders.ListDecoder):
+  """Decodes the list of applications to be enabled on the dpb service."""
+
+  def __init__(self, **kwargs):
+    super(_DpbPipelineOptionsListDecoder, self).__init__(
+      default=None,
+      item_decoder=option_decoders.TypeVerifier(default=None, valid_types=(dict,)),
+      **kwargs)
 
 class _ManagedRelationalDbDecoder(option_decoders.TypeVerifier):
   """Validate the managed_relational_db dictionary of a benchmark config object.

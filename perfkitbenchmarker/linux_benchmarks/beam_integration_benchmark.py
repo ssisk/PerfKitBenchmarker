@@ -30,6 +30,7 @@ from perfkitbenchmarker import configs
 from perfkitbenchmarker import dpb_service
 from perfkitbenchmarker import errors
 from perfkitbenchmarker import flags
+from perfkitbenchmarker import kubernetes_helper
 from perfkitbenchmarker import sample
 from perfkitbenchmarker import vm_util
 from perfkitbenchmarker.dpb_service import BaseDpbService
@@ -55,6 +56,7 @@ beam_integration_benchmark:
           disk_size: 500
           disk_type: gp2
     worker_count: 2
+    kubernetes_scripts: []
     static_pipeline_options: []
     dynamic_pipeline_options: []
 """
@@ -105,9 +107,18 @@ def CheckPrerequisites(benchmark_config_spec):
     raise Exception("beam_it_options must be of form"
                     " [\"--option=value\",\"--option2=val2\"]")
 
+def KubernetesCreate(file_list):
+  """
+  Note that this does not try to wait for the creation to succeed - you'll need to have something else that waits
+  :param file_list: 
+  :return: 
+  """
+  for file in file_list:
+    kubernetes_helper.CreateFromFile(file)
 
 def Prepare(benchmark_spec):
   beam_benchmark_helper.InitializeBeamRepo(benchmark_spec)
+  KubernetesCreate(benchmark_spec.dpb_service.kubernetes_scripts)
   pass
 
 
@@ -200,7 +211,12 @@ def Run(benchmark_spec):
   return results
 
 
+def KubernetesDeleteAllFiles(file_list):
+  for file in file_list:
+    kubernetes_helper.DeleteFromFile(file)
+
 def Cleanup(benchmark_spec):
+  KubernetesDeleteAllFiles(benchmark_spec.dpb_service.kubernetes_scripts)
   pass
 
 
@@ -238,6 +254,7 @@ def EvaluateDynamicPipelineOptions(dynamic_options):
 
 
 def KubernetesGet(resource, resourceInstanceName, filter, jsonFilter):
+  # TODO - this needs to wait+loop until we have a value returned or timeout
   get_pod_cmd = [FLAGS.kubectl, '--kubeconfig=%s' % FLAGS.kubeconfig,
                  'get', resource, resourceInstanceName, filter,
                  '-o jsonpath', jsonFilter]
@@ -270,7 +287,3 @@ def RetrieveLoadBalancerIp(argDescriptor):
 #   -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
 
 
-def RetrieveKubernetesValue():
-  if False:
-    raise errors.Benchmarks.RunError()
-  return 0
