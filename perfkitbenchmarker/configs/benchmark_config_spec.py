@@ -95,6 +95,7 @@ class _DpbApplicationListDecoder(option_decoders.ListDecoder):
         **kwargs)
 
 
+
 class _DpbServiceDecoder(option_decoders.TypeVerifier):
   """Validates the dpb(data processing backend) service dictionary of a
   benchmark config object."""
@@ -175,7 +176,9 @@ class _DpbServiceSpec(spec.BaseSpec):
             'default': dpb_service.DEFAULT_WORKER_COUNT,
             'min': 2
         }),
-        'applications': (_DpbApplicationListDecoder, {})
+        'applications': (_DpbApplicationListDecoder, {}),
+        'static_pipeline_options': (_DpbPipelineOptionsListDecoder, {}),
+        'dynamic_pipeline_options': (_DpbPipelineOptionsListDecoder, {})
     })
     return result
 
@@ -711,6 +714,17 @@ class _ManagedRelationalDbDecoder(option_decoders.TypeVerifier):
         self._GetOptionFullName(component_full_name), flag_values,
         **managed_relational_db_config)
     return result
+
+
+class _DpbPipelineOptionsListDecoder(option_decoders.ListDecoder):
+  """Decodes the list of applications to be enabled on the dpb service."""
+
+  def __init__(self, **kwargs):
+    super(_DpbPipelineOptionsListDecoder, self).__init__(
+        default=None,
+        item_decoder=option_decoders.TypeVerifier(default=None,
+                                                  valid_types=(dict,)),
+        **kwargs)
 
 
 class BenchmarkConfigSpec(spec.BaseSpec):

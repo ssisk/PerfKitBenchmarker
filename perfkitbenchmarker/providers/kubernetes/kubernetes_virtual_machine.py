@@ -25,6 +25,7 @@ from perfkitbenchmarker.providers.kubernetes import kubernetes_disk
 from perfkitbenchmarker.vm_util import OUTPUT_STDOUT as STDOUT,\
     OUTPUT_STDERR as STDERR, OUTPUT_EXIT_CODE as EXIT_CODE
 
+
 FLAGS = flags.FLAGS
 
 UBUNTU_IMAGE = 'ubuntu-upstart'
